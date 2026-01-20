@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+
+# Linting / Formatting
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+
+# Distribution / Packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+
+# Videos (grandes, não commitar)
+src/videos/*.mp4
+src/videos/*.mkv
+src/videos/*.avi
+!src/videos/.gitkeep
+
+# Profiling
+*.prof
+*.svg
+profile.svg
+
+# Benchmarks
+benchmark_results/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Project specific
+tutorial/
+uv.lock

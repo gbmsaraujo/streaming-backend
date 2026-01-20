@@ -1,0 +1,76 @@
+[project]
+name = "streaming-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiofiles>=25.1.0",
+    "fastapi>=0.128.0",
+    "python-multipart>=0.0.21",
+    "uvicorn[standard]>=0.40.0",
+    "websockets>=16.0",
+]
+
+[dependency-groups]
+dev = [
+    "memory-profiler>=0.61.0",
+    "py-spy>=0.4.1",
+    "ruff>=0.14.12",
+]
+
+[tool.ruff]
+# Linha máxima de 100 caracteres
+line-length = 100
+
+# Python 3.12+
+target-version = "py312"
+
+# Excluir arquivos/pastas
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "*.pyc",
+]
+
+[tool.ruff.lint]
+# Regras essenciais para qualidade de código
+select = [
+    "E",     # pycodestyle errors (erros de sintaxe e estilo críticos)
+    "F",     # pyflakes (erros lógicos, imports não usados, variáveis indefinidas)
+    "B",     # flake8-bugbear (bugs comuns e anti-patterns)
+    "I",     # isort (organização de imports)
+    "UP",    # pyupgrade (sintaxe moderna do Python)
+    "C4",    # flake8-comprehensions (list/dict comprehensions eficientes)
+    "PIE",   # flake8-pie (erros desnecessários)
+    "RET",   # flake8-return (problemas com returns)
+    "SIM",   # flake8-simplify (simplificações de código)
+    "TCH",   # flake8-type-checking (imports de type checking)
+    "PTH",   # flake8-use-pathlib (usar pathlib ao invés de os.path)
+]
+
+# Ignorar regras que não impactam qualidade mas irritam
+ignore = [
+    "E501",   # linha muito longa (line-length já controla)
+    "B008",   # não usar function calls em argument defaults (comum em FastAPI)
+    "UP007",  # usar | para union types (nem sempre é melhor)
+    "SIM108", # usar operador ternário (às vezes if/else é mais claro)
+]
+
+# Permitir autofix em tudo
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.format]
+# Usar aspas duplas
+quote-style = "double"
+
+# Identação com 4 espaços
+indent-style = "space"
+
+# Pular linhas mágicas
+skip-magic-trailing-comma = false
+
+# Finalizar com nova linha
+line-ending = "auto"
