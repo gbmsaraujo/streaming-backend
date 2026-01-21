@@ -29,8 +29,6 @@ class VideoPathDriver(IVideoPathDriver):
         """Verifica se um vídeo específico existe."""
         return self.get_video_path(video_name).is_file()
 
-
-
     def get_video_names(self, pattern: str = "*.mp4") -> list[str]:
         """Retorna apenas os nomes dos vídeos."""
         return [video.name for video in self._path.glob(pattern)]

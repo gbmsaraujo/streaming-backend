@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from src.factories.video_reader_factory import video_reader
+from src.factories.video_stream_factory import video_reader
 
 video_router = APIRouter(prefix="/api")
 

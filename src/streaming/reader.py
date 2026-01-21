@@ -2,12 +2,15 @@ from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from typing import Any
 
+import aiofiles
+
 from src.interfaces.metrics_interface import IPerformanceMetrics
 from src.interfaces.video_path_interface import IVideoPathDriver
+from src.interfaces.video_reader import IVideoReader
 
 
 @dataclass
-class VideoReader:
+class VideoReader(IVideoReader):
     path: IVideoPathDriver
     metrics: IPerformanceMetrics
 
@@ -21,9 +24,9 @@ class VideoReader:
 
         self.metrics.increment_streams()
 
-        with video_path.open("rb") as video_file:
+        async with aiofiles.open(video_path, "rb") as video_file:
             while True:
-                video_chunk = video_file.read(chunk_size)
+                video_chunk = await video_file.read(chunk_size)
 
                 if not video_chunk:
                     self.metrics.decrement_streams()

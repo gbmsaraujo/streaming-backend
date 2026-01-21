@@ -15,7 +15,6 @@ class IVideoPathDriver(ABC):
     def video_exists(self, video_name: str) -> bool:
         pass
 
-
     @abstractmethod
     def get_video_names(self, pattern: str = "*.mp4") -> list[str]:
         pass
@@ -33,5 +32,5 @@ class IVideoPathDriver(ABC):
         pass
 
     @abstractmethod
-    def read_video(self, video_name: str, chunk_size:int=-1) -> bytes:
+    def read_video(self, video_name: str, chunk_size: int = -1) -> bytes:
         pass

@@ -30,12 +30,16 @@ Este projeto implementa um servidor de streaming de vídeo HTTP otimizado, const
 - [x] **Otimização com memoryview** - Zero-copy para melhor performance de memória
 - [x] **CORS configurado** - Permite requisições do frontend
 - [x] **Chunked transfer** - Streaming em chunks de 64KB
+- [x] **WebSocket Streaming** - Streaming em tempo real via WebSocket
+- [x] **Sistema de métricas** - Monitoramento com psutil (CPU, memória, throughput)
+- [x] **Range Requests** - Suporte a HTTP 206 para seek no vídeo
 
 ### 🏗️ Arquitetura
 
 - [x] **Clean Architecture** - Separação em camadas (drivers, interfaces, factories)
 - [x] **Dependency Injection** - Factory pattern para instanciação de dependências
 - [x] **Interface-based design** - Abstrações para facilitar testes e manutenção
+- [x] **Logging estruturado** - Logs profissionais com níveis e formatação
 
 ---
 
@@ -177,6 +181,50 @@ GET /api/stream/{video_name}
 curl http://localhost:8000/api/stream/sample.mp4 -o output.mp4
 ```
 
+#### 📹 Stream com Range Requests (Seek Support)
+
+```bash
+GET /api/stream-range/{video_name}
+Header: Range: bytes=start-end
+
+# Exemplos:
+# Primeiros 1MB
+curl -H "Range: bytes=0-1048576" http://localhost:8000/api/stream-range/sample.mp4
+
+# Do byte 1MB em diante
+curl -H "Range: bytes=1048576-" http://localhost:8000/api/stream-range/sample.mp4
+```
+
+#### 🔌 WebSocket Streaming
+
+```javascript
+const ws = new WebSocket('ws://localhost:8000/api/ws/stream/sample.mp4');
+ws.binaryType = 'arraybuffer';
+
+ws.onmessage = (event) => {
+    // event.data contém chunk do vídeo
+    console.log('Received chunk:', event.data.byteLength);
+};
+```
+
+#### 📊 Métricas do Sistema
+
+```bash
+GET /api/metrics
+
+# Resposta:
+{
+  "uptime_seconds": 3600,
+  "bytes_sent": 1073741824,
+  "mb_sent": 1024.0,
+  "chunks_sent": 16384,
+  "throughput_mbps": 28.4,
+  "active_streams": 3,
+  "memory_mb": 145.2,
+  "cpu_percent": 23.5
+}
+```
+
 #### 🔍 Health Check
 
 ```bash
@@ -225,19 +273,16 @@ py-spy top -- python -m uvicorn src.server.app:app
 
 ### 🔴 Prioridade Alta
 
-- [ ] **Range Requests** - Suporte completo a HTTP Range para seek no vídeo
-- [ ] **Content-Length correto** - Header com tamanho total do arquivo
-- [ ] **Sistema de métricas** - Monitoramento de throughput, memória e CPU
-- [ ] **Logging estruturado** - Logs profissionais com níveis e formatação
-- [ ] **Testes automatizados** - Cobertura com pytest
+- [ ] **Testes Automatizados** - Cobertura com pytest (endpoints, VideoReader, drivers)
+- [ ] **Benchmark Completo** - Implementar comparação memoryview vs bytes tradicional
+- [ ] **CI/CD Pipeline** - GitHub Actions para lint, test e build
 
 ### 🟡 Prioridade Média
 
 - [ ] **Docker** - Containerização da aplicação
-- [ ] **CI/CD** - Pipeline com GitHub Actions
-- [ ] **Frontend** - UI para player de vídeo
-- [ ] **Cache de chunks** - Sistema de cache para seeks repetidos
-- [ ] **WebSocket streaming** - Streaming em tempo real via WebSocket
+- [ ] **Frontend React** - UI para player de vídeo profissional
+- [ ] **Cache de Chunks** - Sistema de cache para seeks repetidos
+- [ ] **Grafana Dashboard** - Visualização de métricas em tempo real
 
 ### 🟢 Futuras Features
 
