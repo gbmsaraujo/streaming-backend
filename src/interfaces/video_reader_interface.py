@@ -11,5 +11,7 @@ class IVideoReader(ABC):
         pass
 
     @abstractmethod
-    async def read_range(self, video_name: str, start: int, end: int) -> memoryview:
+    async def read_range(
+        self, video_name: str, start: int, end: int
+    ) -> AsyncGenerator[memoryview, Any]:
         pass

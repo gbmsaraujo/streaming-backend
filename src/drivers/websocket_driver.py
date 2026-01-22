@@ -7,7 +7,7 @@ from typing import TypedDict
 from fastapi import WebSocket, WebSocketDisconnect
 
 from src.interfaces.video_path_interface import IVideoPathDriver
-from src.interfaces.video_reader import IVideoReader
+from src.interfaces.video_reader_interface import IVideoReader
 
 log = logging.getLogger(__name__)
 
