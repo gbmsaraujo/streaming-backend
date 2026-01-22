@@ -1,565 +1,643 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste Video Streaming - Range Requests</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Teste Video Streaming - Range Requests</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: #fff;
-        }
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+                min-height: 100vh;
+                padding: 20px;
+                color: #fff;
+            }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+            .header {
+                text-align: center;
+                margin-bottom: 30px;
+            }
 
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
+            .header h1 {
+                font-size: 2.5em;
+                margin-bottom: 10px;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            }
 
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
+            .header p {
+                font-size: 1.1em;
+                opacity: 0.9;
+            }
 
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 900px) {
             .main-content {
-                grid-template-columns: 1fr;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                margin-bottom: 20px;
             }
-        }
 
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .card h2 {
-            font-size: 1.5em;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #00d4ff;
-            padding-bottom: 10px;
-        }
-
-        .video-player-section {
-            grid-column: 1 / -1;
-        }
-
-        video {
-            width: 100%;
-            height: auto;
-            background: #000;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .video-controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
-        }
-
-        button {
-            padding: 10px 15px;
-            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
-            border: none;
-            color: #fff;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.95em;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        button.secondary {
-            background: linear-gradient(135deg, #ff6b6b 0%, #cc3333 100%);
-        }
-
-        button.secondary:hover {
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-        }
-
-        .video-list {
-            max-height: 250px;
-            overflow-y: auto;
-        }
-
-        .video-item {
-            padding: 10px;
-            margin: 8px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
-        }
-
-        .video-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-left-color: #00d4ff;
-            padding-left: 15px;
-        }
-
-        .video-item.active {
-            background: rgba(0, 212, 255, 0.2);
-            border-left-color: #00d4ff;
-        }
-
-        .video-info {
-            font-size: 0.9em;
-            opacity: 0.8;
-            margin-top: 5px;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .metric-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px;
-            border-radius: 5px;
-            border-left: 3px solid #00d4ff;
-        }
-
-        .metric-label {
-            font-size: 0.85em;
-            opacity: 0.8;
-            text-transform: uppercase;
-        }
-
-        .metric-value {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-top: 5px;
-            color: #00d4ff;
-        }
-
-        .range-test {
-            margin-top: 15px;
-        }
-
-        .range-input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        input[type="number"] {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            font-size: 0.9em;
-        }
-
-        input[type="number"]::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        input[type="number"]:focus {
-            outline: none;
-            border-color: #00d4ff;
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .status {
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 0.9em;
-            margin-top: 10px;
-        }
-
-        .status.info {
-            background: rgba(0, 212, 255, 0.2);
-            border-left: 3px solid #00d4ff;
-        }
-
-        .status.success {
-            background: rgba(0, 255, 100, 0.2);
-            border-left: 3px solid #00ff64;
-        }
-
-        .status.error {
-            background: rgba(255, 100, 100, 0.2);
-            border-left: 3px solid #ff6464;
-        }
-
-        .status.loading {
-            background: rgba(255, 200, 0, 0.2);
-            border-left: 3px solid #ffc800;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #00d4ff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .player-info {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        @media (max-width: 600px) {
-            .player-info {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .player-stat {
-            text-align: center;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 5px;
-        }
-
-        .player-stat-label {
-            font-size: 0.75em;
-            opacity: 0.7;
-            text-transform: uppercase;
-        }
-
-        .player-stat-value {
-            font-size: 1em;
-            font-weight: bold;
-            color: #00d4ff;
-            margin-top: 3px;
-        }
-
-        .scroll-bar {
-            scrollbar-color: rgba(0, 212, 255, 0.5) rgba(255, 255, 255, 0.1);
-            scrollbar-width: thin;
-        }
-
-        .scroll-bar::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .scroll-bar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        .scroll-bar::-webkit-scrollbar-thumb {
-            background: rgba(0, 212, 255, 0.5);
-            border-radius: 10px;
-        }
-
-        .scroll-bar::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 212, 255, 0.7);
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎬 Video Streaming Test</h1>
-            <p>Range Requests & Streaming Performance</p>
-        </div>
-
-        <div class="main-content">
-            <!-- Video Player -->
-            <div class="video-player-section card">
-                <h2>📺 Player</h2>
-                <video id="player" controls>
-                    <source id="videoSource" src="" type="video/mp4">
-                    Seu navegador não suporta a tag de vídeo.
-                </video>
-                
-                <div class="video-controls">
-                    <button onclick="playVideo()">▶️ Play</button>
-                    <button onclick="pauseVideo()">⏸️ Pause</button>
-                    <button onclick="stopVideo()">⏹️ Stop</button>
-                    <button class="secondary" onclick="toggleFullscreen()">🖥️ Fullscreen</button>
-                </div>
-
-                <div class="player-info">
-                    <div class="player-stat">
-                        <div class="player-stat-label">Status</div>
-                        <div class="player-stat-value" id="playerStatus">Parado</div>
-                    </div>
-                    <div class="player-stat">
-                        <div class="player-stat-label">Tempo</div>
-                        <div class="player-stat-value" id="playerTime">00:00</div>
-                    </div>
-                    <div class="player-stat">
-                        <div class="player-stat-label">Duração</div>
-                        <div class="player-stat-value" id="playerDuration">00:00</div>
-                    </div>
-                    <div class="player-stat">
-                        <div class="player-stat-label">Buffer</div>
-                        <div class="player-stat-value" id="playerBuffer">0%</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Video List -->
-            <div class="card">
-                <h2>📹 Vídeos Disponíveis</h2>
-                <div class="video-list scroll-bar" id="videoList">
-                    <div class="status loading">
-                        <span class="loading-spinner"></span> Carregando vídeos...
-                    </div>
-                </div>
-            </div>
-
-            <!-- Range Requests Test -->
-            <div class="card">
-                <h2>🎯 Teste de Range Requests</h2>
-                <p style="font-size: 0.9em; opacity: 0.8; margin-bottom: 10px;">
-                    Teste seek específico em bytes (HTTP 206)
-                </p>
-                
-                <div class="range-input-group">
-                    <input type="number" id="rangeStart" placeholder="Byte inicial" value="0" min="0">
-                    <input type="number" id="rangeEnd" placeholder="Byte final" value="1048576" min="0">
-                </div>
-                
-                <button onclick="testRangeRequest()">🚀 Testar Range Request</button>
-                
-                <div id="rangeStatus" class="status info" style="display: none;"></div>
-            </div>
-
-            <!-- Metrics -->
-            <div class="card">
-                <h2>📊 Métricas do Servidor</h2>
-                <div class="metrics-grid" id="metricsContainer">
-                    <div class="status loading">
-                        <span class="loading-spinner"></span> Carregando métricas...
-                    </div>
-                </div>
-                <button onclick="refreshMetrics()" style="width: 100%; margin-top: 10px;">🔄 Atualizar Métricas</button>
-            </div>
-        </div>
-
-        <div class="status info" style="text-align: center; font-size: 0.9em;">
-            ✅ API: http://localhost:8000 | Verifique que o backend está rodando
-        </div>
-    </div>
-
-    <script>
-        const API_BASE = 'http://localhost:8000/api';
-        let currentVideo = null;
-
-        // Formatar tempo em HH:MM:SS
-        function formatTime(seconds) {
-            if (!seconds || isNaN(seconds)) return '00:00';
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = Math.floor(seconds % 60);
-            if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-            return `${m}:${String(s).padStart(2, '0')}`;
-        }
-
-        // Carregar lista de vídeos
-        async function loadVideos() {
-            try {
-                const response = await fetch(`${API_BASE}/videos`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
-                const videos = await response.json();
-                const listContainer = document.getElementById('videoList');
-                
-                if (!Array.isArray(videos) || videos.length === 0) {
-                    listContainer.innerHTML = '<div class="status error">❌ Nenhum vídeo encontrado</div>';
-                    return;
+            @media (max-width: 900px) {
+                .main-content {
+                    grid-template-columns: 1fr;
                 }
+            }
 
-                listContainer.innerHTML = videos.map((video, idx) => `
+            .card {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 10px;
+                padding: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .card h2 {
+                font-size: 1.5em;
+                margin-bottom: 15px;
+                border-bottom: 2px solid #00d4ff;
+                padding-bottom: 10px;
+            }
+
+            .video-player-section {
+                grid-column: 1 / -1;
+            }
+
+            video {
+                width: 100%;
+                height: auto;
+                background: #000;
+                border-radius: 8px;
+                margin-bottom: 15px;
+            }
+
+            .video-controls {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-bottom: 15px;
+            }
+
+            button {
+                padding: 10px 15px;
+                background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+                border: none;
+                color: #fff;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 0.95em;
+                font-weight: 500;
+                transition: all 0.3s ease;
+            }
+
+            button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+            }
+
+            button:active {
+                transform: translateY(0);
+            }
+
+            button.secondary {
+                background: linear-gradient(135deg, #ff6b6b 0%, #cc3333 100%);
+            }
+
+            button.secondary:hover {
+                box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            }
+
+            .video-list {
+                max-height: 250px;
+                overflow-y: auto;
+            }
+
+            .video-item {
+                padding: 10px;
+                margin: 8px 0;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 5px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                border-left: 3px solid transparent;
+            }
+
+            .video-item:hover {
+                background: rgba(255, 255, 255, 0.15);
+                border-left-color: #00d4ff;
+                padding-left: 15px;
+            }
+
+            .video-item.active {
+                background: rgba(0, 212, 255, 0.2);
+                border-left-color: #00d4ff;
+            }
+
+            .video-info {
+                font-size: 0.9em;
+                opacity: 0.8;
+                margin-top: 5px;
+            }
+
+            .metrics-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-top: 15px;
+            }
+
+            .metric-item {
+                background: rgba(255, 255, 255, 0.05);
+                padding: 10px;
+                border-radius: 5px;
+                border-left: 3px solid #00d4ff;
+            }
+
+            .metric-label {
+                font-size: 0.85em;
+                opacity: 0.8;
+                text-transform: uppercase;
+            }
+
+            .metric-value {
+                font-size: 1.2em;
+                font-weight: bold;
+                margin-top: 5px;
+                color: #00d4ff;
+            }
+
+            .range-test {
+                margin-top: 15px;
+            }
+
+            .range-input-group {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+
+            input[type='number'] {
+                flex: 1;
+                padding: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 5px;
+                background: rgba(255, 255, 255, 0.1);
+                color: #fff;
+                font-size: 0.9em;
+            }
+
+            input[type='number']::placeholder {
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            input[type='number']:focus {
+                outline: none;
+                border-color: #00d4ff;
+                background: rgba(255, 255, 255, 0.15);
+            }
+
+            .status {
+                padding: 10px;
+                border-radius: 5px;
+                font-size: 0.9em;
+                margin-top: 10px;
+            }
+
+            .status.info {
+                background: rgba(0, 212, 255, 0.2);
+                border-left: 3px solid #00d4ff;
+            }
+
+            .status.success {
+                background: rgba(0, 255, 100, 0.2);
+                border-left: 3px solid #00ff64;
+            }
+
+            .status.error {
+                background: rgba(255, 100, 100, 0.2);
+                border-left: 3px solid #ff6464;
+            }
+
+            .status.loading {
+                background: rgba(255, 200, 0, 0.2);
+                border-left: 3px solid #ffc800;
+            }
+
+            .loading-spinner {
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-top-color: #00d4ff;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .player-info {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+                margin-top: 10px;
+            }
+
+            @media (max-width: 600px) {
+                .player-info {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            .player-stat {
+                text-align: center;
+                padding: 8px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 5px;
+            }
+
+            .player-stat-label {
+                font-size: 0.75em;
+                opacity: 0.7;
+                text-transform: uppercase;
+            }
+
+            .player-stat-value {
+                font-size: 1em;
+                font-weight: bold;
+                color: #00d4ff;
+                margin-top: 3px;
+            }
+
+            .scroll-bar {
+                scrollbar-color: rgba(0, 212, 255, 0.5) rgba(255, 255, 255, 0.1);
+                scrollbar-width: thin;
+            }
+
+            .scroll-bar::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .scroll-bar::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+            }
+
+            .scroll-bar::-webkit-scrollbar-thumb {
+                background: rgba(0, 212, 255, 0.5);
+                border-radius: 10px;
+            }
+
+            .scroll-bar::-webkit-scrollbar-thumb:hover {
+                background: rgba(0, 212, 255, 0.7);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🎬 Video Streaming Test</h1>
+                <p>Range Requests & Streaming Performance</p>
+            </div>
+
+            <div class="main-content">
+                <!-- Video Player -->
+                <div class="video-player-section card">
+                    <h2>📺 Player</h2>
+                    <video id="player" controls>
+                        <source id="videoSource" src="" type="video/mp4" />
+                        Seu navegador não suporta a tag de vídeo.
+                    </video>
+
+                    <div class="video-controls">
+                        <button onclick="playVideo()">▶️ Play</button>
+                        <button onclick="pauseVideo()">⏸️ Pause</button>
+                        <button onclick="stopVideo()">⏹️ Stop</button>
+                        <button class="secondary" onclick="toggleFullscreen()">
+                            🖥️ Fullscreen
+                        </button>
+                    </div>
+
+                    <div class="player-info">
+                        <div class="player-stat">
+                            <div class="player-stat-label">Status</div>
+                            <div class="player-stat-value" id="playerStatus">
+                                Parado
+                            </div>
+                        </div>
+                        <div class="player-stat">
+                            <div class="player-stat-label">Tempo</div>
+                            <div class="player-stat-value" id="playerTime">
+                                00:00
+                            </div>
+                        </div>
+                        <div class="player-stat">
+                            <div class="player-stat-label">Duração</div>
+                            <div class="player-stat-value" id="playerDuration">
+                                00:00
+                            </div>
+                        </div>
+                        <div class="player-stat">
+                            <div class="player-stat-label">Buffer</div>
+                            <div class="player-stat-value" id="playerBuffer">
+                                0%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video List -->
+                <div class="card">
+                    <h2>📹 Vídeos Disponíveis</h2>
+                    <div class="video-list scroll-bar" id="videoList">
+                        <div class="status loading">
+                            <span class="loading-spinner"></span> Carregando
+                            vídeos...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Range Requests Test -->
+                <div class="card">
+                    <h2>🎯 Teste de Range Requests</h2>
+                    <p
+                        style="
+                            font-size: 0.9em;
+                            opacity: 0.8;
+                            margin-bottom: 10px;
+                        "
+                    >
+                        Teste seek específico em bytes (HTTP 206)
+                    </p>
+
+                    <div class="range-input-group">
+                        <input
+                            type="number"
+                            id="rangeStart"
+                            placeholder="Byte inicial"
+                            value="0"
+                            min="0"
+                        />
+                        <input
+                            type="number"
+                            id="rangeEnd"
+                            placeholder="Byte final"
+                            value="1048576"
+                            min="0"
+                        />
+                    </div>
+
+                    <button onclick="testRangeRequest()">
+                        🚀 Testar Range Request
+                    </button>
+
+                    <div
+                        id="rangeStatus"
+                        class="status info"
+                        style="display: none"
+                    ></div>
+                </div>
+
+                <!-- Metrics -->
+                <div class="card">
+                    <h2>📊 Métricas do Servidor</h2>
+                    <div class="metrics-grid" id="metricsContainer">
+                        <div class="status loading">
+                            <span class="loading-spinner"></span> Carregando
+                            métricas...
+                        </div>
+                    </div>
+                    <button
+                        onclick="refreshMetrics()"
+                        style="width: 100%; margin-top: 10px"
+                    >
+                        🔄 Atualizar Métricas
+                    </button>
+                </div>
+            </div>
+
+            <div
+                class="status info"
+                style="text-align: center; font-size: 0.9em"
+            >
+                ✅ API: http://localhost:8000 | Verifique que o backend está
+                rodando
+            </div>
+        </div>
+
+        <script>
+            const API_BASE = 'http://localhost:8000/api';
+            let currentVideo = null;
+
+            // Formatar tempo em HH:MM:SS
+            function formatTime(seconds) {
+                if (!seconds || isNaN(seconds)) return '00:00';
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                const s = Math.floor(seconds % 60);
+                if (h > 0)
+                    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                return `${m}:${String(s).padStart(2, '0')}`;
+            }
+
+            // Carregar lista de vídeos
+            async function loadVideos() {
+                try {
+                    const response = await fetch(`${API_BASE}/videos`);
+                    if (!response.ok)
+                        throw new Error(`HTTP ${response.status}`);
+
+                    const videos = await response.json();
+                    const listContainer = document.getElementById('videoList');
+
+                    if (!Array.isArray(videos) || videos.length === 0) {
+                        listContainer.innerHTML =
+                            '<div class="status error">❌ Nenhum vídeo encontrado</div>';
+                        return;
+                    }
+
+                    listContainer.innerHTML = videos
+                        .map(
+                            (video, idx) => `
                     <div class="video-item ${idx === 0 ? 'active' : ''}" onclick="selectVideo('${video}', this)">
                         <strong>🎬 ${video}</strong>
                     </div>
-                `).join('');
+                `,
+                        )
+                        .join('');
 
-                // Carregar primeiro vídeo
-                if (videos.length > 0) {
-                    selectVideo(videos[0]);
-                }
-            } catch (error) {
-                console.error('Erro ao carregar vídeos:', error);
-                document.getElementById('videoList').innerHTML = 
-                    `<div class="status error">❌ Erro: ${error.message}</div>`;
-            }
-        }
-
-        // Selecionar e reproduzir vídeo
-        function selectVideo(videoName, el) {
-            currentVideo = videoName;
-            
-            // Atualizar marcação
-            document.querySelectorAll('.video-item').forEach(item => {
-                item.classList.remove('active');
-            });
-
-            if (el) {
-                el.classList.add('active');
-            } else {
-                const match = Array.from(document.querySelectorAll('.video-item')).find(item => item.textContent.includes(videoName));
-                match?.classList.add('active');
-            }
-            
-            // Carregar vídeo
-            const videoSource = document.getElementById('videoSource');
-            videoSource.src = `${API_BASE}/stream/${videoName}`;
-            
-            const player = document.getElementById('player');
-            player.load();
-            
-            showStatus('✅ Vídeo carregado', 'success');
-        }
-
-        // Controles do player
-        function playVideo() {
-            document.getElementById('player').play();
-        }
-
-        function pauseVideo() {
-            document.getElementById('player').pause();
-        }
-
-        function stopVideo() {
-            const player = document.getElementById('player');
-            player.pause();
-            player.currentTime = 0;
-        }
-
-        function toggleFullscreen() {
-            const video = document.getElementById('player');
-            if (video.requestFullscreen) {
-                video.requestFullscreen();
-            }
-        }
-
-        // Atualizar informações do player
-        function updatePlayerInfo() {
-            const player = document.getElementById('player');
-            
-            document.getElementById('playerTime').textContent = formatTime(player.currentTime);
-            document.getElementById('playerDuration').textContent = formatTime(player.duration);
-            
-            if (player.buffered.length > 0) {
-                const bufferedEnd = player.buffered.end(player.buffered.length - 1);
-                const percentage = Math.round((bufferedEnd / player.duration) * 100);
-                document.getElementById('playerBuffer').textContent = `${percentage}%`;
-            }
-        }
-
-        // Eventos do player
-        const player = document.getElementById('player');
-        player.addEventListener('play', () => {
-            document.getElementById('playerStatus').textContent = '▶️ Reproduzindo';
-        });
-        player.addEventListener('pause', () => {
-            document.getElementById('playerStatus').textContent = '⏸️ Pausado';
-        });
-        player.addEventListener('timeupdate', updatePlayerInfo);
-        player.addEventListener('loadedmetadata', updatePlayerInfo);
-        player.addEventListener('progress', updatePlayerInfo);
-
-        // Testar Range Request
-        async function testRangeRequest() {
-            if (!currentVideo) {
-                showStatus('❌ Selecione um vídeo primeiro', 'error');
-                return;
-            }
-
-            const start = parseInt(document.getElementById('rangeStart').value);
-            const end = parseInt(document.getElementById('rangeEnd').value);
-
-            if (isNaN(start) || isNaN(end) || start >= end) {
-                showStatus('❌ Range inválido', 'error');
-                return;
-            }
-
-            try {
-                showStatus('⏳ Testando Range Request...', 'loading');
-
-                const response = await fetch(`${API_BASE}/stream/${currentVideo}`, {
-                    headers: {
-                        'Range': `bytes=${start}-${end}`
+                    // Carregar primeiro vídeo
+                    if (videos.length > 0) {
+                        selectVideo(videos[0]);
                     }
+                } catch (error) {
+                    console.error('Erro ao carregar vídeos:', error);
+                    document.getElementById('videoList').innerHTML =
+                        `<div class="status error">❌ Erro: ${error.message}</div>`;
+                }
+            }
+
+            // Selecionar e reproduzir vídeo
+            function selectVideo(videoName, el) {
+                currentVideo = videoName;
+
+                // Atualizar marcação
+                document.querySelectorAll('.video-item').forEach((item) => {
+                    item.classList.remove('active');
                 });
 
-                if (response.status === 206) {
-                    const contentRange = response.headers.get('Content-Range');
-                    const contentLength = response.headers.get('Content-Length');
-                    showStatus(
-                        `✅ Range Request funcionando!\n📊 Status: 206\n📦 Content-Length: ${contentLength} bytes\n📍 Range: ${contentRange}`,
-                        'success'
-                    );
-                } else if (response.status === 200) {
-                    showStatus('⚠️ Servidor retornou arquivo completo (200) ao invés de (206)', 'info');
+                if (el) {
+                    el.classList.add('active');
                 } else {
-                    showStatus(`❌ Erro: HTTP ${response.status}`, 'error');
+                    const match = Array.from(
+                        document.querySelectorAll('.video-item'),
+                    ).find((item) => item.textContent.includes(videoName));
+                    match?.classList.add('active');
                 }
-            } catch (error) {
-                showStatus(`❌ Erro: ${error.message}`, 'error');
-            }
-        }
 
-        // Carregar e atualizar métricas
-        async function refreshMetrics() {
-            try {
-                const response = await fetch(`${API_BASE}/metrics`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
-                const metrics = await response.json();
-                const container = document.getElementById('metricsContainer');
-                
-                const metricsHTML = `
+                // Carregar vídeo
+                const videoSource = document.getElementById('videoSource');
+                videoSource.src = `${API_BASE}/stream/${videoName}`;
+
+                const player = document.getElementById('player');
+                player.load();
+
+                showStatus('✅ Vídeo carregado', 'success');
+            }
+
+            // Controles do player
+            function playVideo() {
+                document.getElementById('player').play();
+            }
+
+            function pauseVideo() {
+                document.getElementById('player').pause();
+            }
+
+            function stopVideo() {
+                const player = document.getElementById('player');
+                player.pause();
+                player.currentTime = 0;
+            }
+
+            function toggleFullscreen() {
+                const video = document.getElementById('player');
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                }
+            }
+
+            // Atualizar informações do player
+            function updatePlayerInfo() {
+                const player = document.getElementById('player');
+
+                document.getElementById('playerTime').textContent = formatTime(
+                    player.currentTime,
+                );
+                document.getElementById('playerDuration').textContent =
+                    formatTime(player.duration);
+
+                if (player.buffered.length > 0) {
+                    const bufferedEnd = player.buffered.end(
+                        player.buffered.length - 1,
+                    );
+                    const percentage = Math.round(
+                        (bufferedEnd / player.duration) * 100,
+                    );
+                    document.getElementById('playerBuffer').textContent =
+                        `${percentage}%`;
+                }
+            }
+
+            // Eventos do player
+            const player = document.getElementById('player');
+            player.addEventListener('play', () => {
+                document.getElementById('playerStatus').textContent =
+                    '▶️ Reproduzindo';
+            });
+            player.addEventListener('pause', () => {
+                document.getElementById('playerStatus').textContent =
+                    '⏸️ Pausado';
+            });
+            player.addEventListener('timeupdate', updatePlayerInfo);
+            player.addEventListener('loadedmetadata', updatePlayerInfo);
+            player.addEventListener('progress', updatePlayerInfo);
+
+            // Testar Range Request
+            async function testRangeRequest() {
+                if (!currentVideo) {
+                    showStatus('❌ Selecione um vídeo primeiro', 'error');
+                    return;
+                }
+
+                const start = parseInt(
+                    document.getElementById('rangeStart').value,
+                );
+                const end = parseInt(document.getElementById('rangeEnd').value);
+
+                if (isNaN(start) || isNaN(end) || start >= end) {
+                    showStatus('❌ Range inválido', 'error');
+                    return;
+                }
+
+                try {
+                    showStatus('⏳ Testando Range Request...', 'loading');
+
+                    const response = await fetch(
+                        `${API_BASE}/stream/${currentVideo}`,
+                        {
+                            headers: {
+                                Range: `bytes=${start}-${end}`,
+                            },
+                        },
+                    );
+
+                    if (response.status === 206) {
+                        const contentRange =
+                            response.headers.get('Content-Range');
+                        const contentLength =
+                            response.headers.get('Content-Length');
+                        showStatus(
+                            `✅ Range Request funcionando!\n📊 Status: 206\n📦 Content-Length: ${contentLength} bytes\n📍 Range: ${contentRange}`,
+                            'success',
+                        );
+                    } else if (response.status === 200) {
+                        showStatus(
+                            '⚠️ Servidor retornou arquivo completo (200) ao invés de (206)',
+                            'info',
+                        );
+                    } else {
+                        showStatus(`❌ Erro: HTTP ${response.status}`, 'error');
+                    }
+                } catch (error) {
+                    showStatus(`❌ Erro: ${error.message}`, 'error');
+                }
+            }
+
+            // Carregar e atualizar métricas
+            async function refreshMetrics() {
+                try {
+                    const response = await fetch(`${API_BASE}/metrics`);
+                    if (!response.ok)
+                        throw new Error(`HTTP ${response.status}`);
+
+                    const metrics = await response.json();
+                    const container =
+                        document.getElementById('metricsContainer');
+
+                    const metricsHTML = `
                     <div class="metric-item">
                         <div class="metric-label">Uptime</div>
                         <div class="metric-value">${Math.round(metrics.uptime_seconds)}s</div>
@@ -593,37 +671,37 @@
                         <div class="metric-value">${(metrics.bytes_sent / metrics.uptime_seconds / (1024 * 1024)).toFixed(2)} MB/s</div>
                     </div>
                 `;
-                
-                container.innerHTML = metricsHTML;
-            } catch (error) {
-                console.error('Erro ao carregar métricas:', error);
-                document.getElementById('metricsContainer').innerHTML = 
-                    `<div class="status error" style="grid-column: 1/-1;">❌ Erro: ${error.message}</div>`;
-            }
-        }
 
-        // Mostrar status
-        function showStatus(message, type = 'info') {
-            const statusDiv = document.getElementById('rangeStatus');
-            statusDiv.textContent = message;
-            statusDiv.className = `status ${type}`;
-            statusDiv.style.display = 'block';
-            
-            if (type === 'success' || type === 'error') {
-                setTimeout(() => {
-                    statusDiv.style.display = 'none';
-                }, 5000);
+                    container.innerHTML = metricsHTML;
+                } catch (error) {
+                    console.error('Erro ao carregar métricas:', error);
+                    document.getElementById('metricsContainer').innerHTML =
+                        `<div class="status error" style="grid-column: 1/-1;">❌ Erro: ${error.message}</div>`;
+                }
             }
-        }
 
-        // Inicializar
-        window.addEventListener('DOMContentLoaded', () => {
-            loadVideos();
-            refreshMetrics();
-            
-            // Atualizar métricas a cada 5 segundos
-            setInterval(refreshMetrics, 5000);
-        });
-    </script>
-</body>
+            // Mostrar status
+            function showStatus(message, type = 'info') {
+                const statusDiv = document.getElementById('rangeStatus');
+                statusDiv.textContent = message;
+                statusDiv.className = `status ${type}`;
+                statusDiv.style.display = 'block';
+
+                if (type === 'success' || type === 'error') {
+                    setTimeout(() => {
+                        statusDiv.style.display = 'none';
+                    }, 5000);
+                }
+            }
+
+            // Inicializar
+            window.addEventListener('DOMContentLoaded', () => {
+                loadVideos();
+                refreshMetrics();
+
+                // Atualizar métricas a cada 5 segundos
+                setInterval(refreshMetrics, 5000);
+            });
+        </script>
+    </body>
 </html>
